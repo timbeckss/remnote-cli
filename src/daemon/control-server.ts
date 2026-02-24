@@ -97,8 +97,12 @@ export class ControlServer {
       body += chunk;
     });
     req.on('end', async () => {
+      let actionForLog: string | undefined;
+      let payloadForLog: unknown;
       try {
         const { action, payload } = JSON.parse(body) as ControlRequest;
+        actionForLog = action;
+        payloadForLog = payload;
         if (!action) {
           this.sendJson(res, 400, { error: 'Missing action field' } as ControlResponse);
           return;
@@ -129,7 +133,25 @@ export class ControlServer {
         this.sendJson(res, 200, { result } as ControlResponse);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        this.logger.error({ error: message }, 'Execute failed');
+        const payloadKeys =
+          payloadForLog && typeof payloadForLog === 'object' && !Array.isArray(payloadForLog)
+            ? Object.keys(payloadForLog as Record<string, unknown>)
+            : undefined;
+        const payloadPreview =
+          payloadForLog === undefined
+            ? undefined
+            : typeof payloadForLog === 'object'
+              ? JSON.stringify(payloadForLog)
+              : payloadForLog;
+        this.logger.error(
+          {
+            action: actionForLog,
+            payloadKeys,
+            payloadPreview,
+            error: message,
+          },
+          'Execute failed'
+        );
         this.sendJson(res, 500, { error: message } as ControlResponse);
       }
     });
