@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Enhanced
+
+- `search` command now supports `--include-content <mode>` with `"markdown"` mode for rendered child subtree previews.
+- `read` command now displays rendered markdown content, aliases, content properties, and type-aware headlines.
+- New options for both commands: `--child-limit`, `--max-content-length`.
+- `search` command shows `headline` (with type-aware delimiters) and `aliases` in text output.
+
+### Changed
+
+- **BREAKING**: `--include-content` changed from boolean flag to string option (`"none"` or `"markdown"`).
+- Default `--depth` for `read` command increased from 1 to 5.
+- `search` text output now uses `headline` field for display when available, with aliases shown as `(aka: ...)` suffix.
+- `read` text output restructured: shows headline, type, aliases, card direction, children stats, and rendered content.
+
 ### Documentation
 
 - Added bridge/plugin compatibility warnings and install guidance links for `0.x` version matching, referencing the canonical bridge-side compatibility guide.

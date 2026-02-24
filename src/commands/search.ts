@@ -27,7 +27,13 @@ export function registerSearchCommand(program: Command): void {
       `Maximum results (default: ${DEFAULT_SEARCH_LIMIT})`,
       String(DEFAULT_SEARCH_LIMIT)
     )
-    .option('--include-content', 'Include note content in results')
+    .option(
+      '--include-content <mode>',
+      'Content rendering mode: "none" (default) or "markdown"'
+    )
+    .option('--depth <n>', 'Depth of child hierarchy to render (default: 3)')
+    .option('--child-limit <n>', 'Maximum children per level (default: 20)')
+    .option('--max-content-length <n>', 'Maximum content character length (default: 3000)')
     .action(async (query: string, opts) => {
       const globalOpts = program.opts();
       const format: OutputFormat = globalOpts.text ? 'text' : 'json';
@@ -38,7 +44,11 @@ export function registerSearchCommand(program: Command): void {
           query,
           limit: parseInt(opts.limit, 10),
         };
-        if (opts.includeContent) payload.includeContent = true;
+        if (opts.includeContent) payload.includeContent = opts.includeContent;
+        if (opts.depth) payload.depth = parseInt(opts.depth, 10);
+        if (opts.childLimit) payload.childLimit = parseInt(opts.childLimit, 10);
+        if (opts.maxContentLength)
+          payload.maxContentLength = parseInt(opts.maxContentLength, 10);
 
         const result = await client.execute('search', payload);
         console.log(
@@ -48,16 +58,20 @@ export function registerSearchCommand(program: Command): void {
             return r.results
               .map((note, i) => {
                 const typeTag = TYPE_TAG[note.remType as string] ?? '';
-                const title = (note.title as string) || '(untitled)';
+                const headline = (note.headline as string) || (note.title as string) || '(untitled)';
+                let aliasesSuffix = '';
+                if (note.aliases && Array.isArray(note.aliases) && note.aliases.length > 0) {
+                  aliasesSuffix = ` (aka: ${(note.aliases as string[]).join(', ')})`;
+                }
                 let detailSuffix = '';
-                if (note.detail) {
+                if (note.detail && !note.headline) {
                   const detail = note.detail as string;
                   detailSuffix =
                     detail.length > DETAIL_TRUNCATE_LENGTH
                       ? ` — ${detail.slice(0, DETAIL_TRUNCATE_LENGTH)}…`
                       : ` — ${detail}`;
                 }
-                return `${i + 1}. ${typeTag}${title}${detailSuffix} [${note.remId}]`;
+                return `${i + 1}. ${typeTag}${headline}${aliasesSuffix}${detailSuffix} [${note.remId}]`;
               })
               .join('\n');
           })
