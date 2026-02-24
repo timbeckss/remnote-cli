@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Legacy bridge warning**: `status` now injects `version_warning` for legacy bridge plugins (0.5.x) that don't send
+  a `hello` message, by falling back to `pluginVersion` from the `get_status` response.
+
 ### Added
 
 - **Automatic version compatibility checks**: Daemon receives bridge `hello` message on connect, stores bridge version,

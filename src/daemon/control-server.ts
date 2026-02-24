@@ -110,8 +110,12 @@ export class ControlServer {
         if (action === 'get_status' && typeof result === 'object' && result !== null) {
           const cliVersion = this.wsServer.getCliVersion();
           const bridgeVersion = this.wsServer.getBridgeVersion();
-          const versionWarning = bridgeVersion
-            ? checkVersionCompatibility(cliVersion, bridgeVersion)
+          const resultObj = result as Record<string, unknown>;
+          const fallbackBridgeVersion =
+            typeof resultObj.pluginVersion === 'string' ? resultObj.pluginVersion : null;
+          const effectiveBridgeVersion = bridgeVersion ?? fallbackBridgeVersion;
+          const versionWarning = effectiveBridgeVersion
+            ? checkVersionCompatibility(cliVersion, effectiveBridgeVersion)
             : null;
           const enriched = {
             ...result,

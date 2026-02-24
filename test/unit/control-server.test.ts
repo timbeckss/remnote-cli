@@ -115,6 +115,20 @@ describe('ControlServer', () => {
       expect(body.result.version_warning).toContain('Version mismatch');
     });
 
+    it('injects version_warning when bridge version null but pluginVersion in result mismatches', async () => {
+      mockWs.sendRequest.mockResolvedValue({ connected: true, pluginVersion: '0.5.0' });
+      mockWs.getBridgeVersion.mockReturnValue(null);
+      mockWs.getCliVersion.mockReturnValue('0.6.0');
+
+      const { body } = await fetchJson('/execute', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'get_status', payload: {} }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      expect(body.result.version_warning).toContain('Version mismatch');
+    });
+
     it('returns error when WebSocket request fails', async () => {
       mockWs.sendRequest.mockRejectedValue(new Error('not connected'));
 
