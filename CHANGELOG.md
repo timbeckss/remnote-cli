@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 - **Legacy bridge warning**: `status` now injects `version_warning` for legacy bridge plugins (0.5.x) that don't send
   a `hello` message, by falling back to `pluginVersion` from the `get_status` response.
+- Integration anchor-note reuse now selects the first existing search hit by `remId` (instead of strict title-equality
+  filtering), preventing repeated duplicate creation of
+  `RemNote Automation Bridge [temporary integration test data]`.
 - Integration tests now pass an explicit `search --include-content <mode>` value and cover all three modes
   (`markdown`, `structured`, `none`) with response-shape assertions.
 - Integration tests now cover `read --include-content` modes (`markdown`, `none`) with response-shape assertions for
@@ -25,6 +28,8 @@ All notable changes to this project will be documented in this file.
 - `search` command now supports `--include-content <mode>` with `"markdown"` mode for rendered child subtree previews.
 - `search` command now also supports `--include-content structured`, surfacing bridge `contentStructured` results with
   nested child `remId`s in JSON output for follow-up reads/navigation.
+- Added `search-tag <tag>` command, dispatching `search_by_tag` with the same content-rendering options as `search`
+  (`--include-content`, `--depth`, `--child-limit`, `--max-content-length`).
 - `read` command now displays rendered markdown content, aliases, content properties, and type-aware headlines.
 - `search --text` now includes parent context suffix when available (`<- parentTitle [parentRemId]`).
 - `read --text` now includes a `Parent:` line when parent context is available.
@@ -32,6 +37,8 @@ All notable changes to this project will be documented in this file.
 - `search` command shows `headline` (with type-aware delimiters) and `aliases` in text output.
 - Integration workflows now reuse a shared root-level anchor note
   `RemNote Automation Bridge [temporary integration test data]` and create all test notes under that parent.
+- Integration Create & Search workflow now also validates `search-tag` with all three `includeContent`
+  modes (`markdown`, `structured`, `none`).
 
 ### Changed
 
@@ -48,6 +55,8 @@ All notable changes to this project will be documented in this file.
 - Added bridge/plugin compatibility warnings and install guidance links for `0.x` version matching, referencing the canonical bridge-side compatibility guide.
 - Updated command reference defaults/options for `search`/`read` depth and `--include-content <mode>`.
 - Updated command reference examples and option docs for `search --include-content structured`.
+- Updated command reference and README command tables for new `search-tag` command.
+- Updated integration testing guide to document shared integration-anchor reuse behavior and `search-tag` coverage.
 - Updated `AGENTS.md` integration-test policy wording to explicitly require manual human execution for integration tests.
 
 ## [0.5.0] - 2026-02-21

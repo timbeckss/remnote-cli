@@ -38,7 +38,7 @@ npm run test:integration -- --yes
 ## Test Workflows
 
 1. **Status Check** — bridge connection verification (gatekeeper)
-2. **Create & Search** — create notes, search for them
+2. **Create & Search** — create notes, validate `search` and `search-tag` across all `includeContent` modes
 3. **Read & Update** — read and modify created notes
 4. **Journal** — append journal entries
 5. **Error Cases** — invalid IDs, graceful error handling
@@ -48,3 +48,7 @@ If the status check (workflow 1) fails, workflows 2-5 are skipped.
 ## Cleanup
 
 After running tests, search RemNote for `[CLI-TEST]` to find and delete test artifacts.
+
+Integration-created notes are grouped under the shared root-level anchor note
+`RemNote Automation Bridge [temporary integration test data]`. If the anchor exists already, tests reuse the first
+search hit instead of creating another anchor note.

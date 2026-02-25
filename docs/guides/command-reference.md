@@ -37,6 +37,8 @@ remnote-cli search <query> [options]
 | `-l, --limit <n>` | Maximum results (default: 50) |
 | `--include-content <mode>` | Content mode: `none` (default), `markdown`, or `structured` |
 | `--depth <n>` | Search content depth when using `--include-content markdown` or `structured` (default: 1) |
+| `--child-limit <n>` | Maximum children per level in rendered content (default: 20) |
+| `--max-content-length <n>` | Maximum rendered content length in markdown mode (default: 3000) |
 
 **Examples:**
 
@@ -48,6 +50,30 @@ remnote-cli search "folders" --include-content structured
 
 When `parentTitle`/`parentRemId` are present in search results, `--text` output includes parent context
 (`<- Parent Title [parentRemId]`) to make hierarchy location visible at a glance.
+
+## search-tag
+
+Search for notes by tag and return ancestor-context targets.
+
+```bash
+remnote-cli search-tag <tag> [options]
+```
+
+| Option | Description |
+|--------|-------------|
+| `-l, --limit <n>` | Maximum results (default: 50) |
+| `--include-content <mode>` | Content mode: `none` (default), `markdown`, or `structured` |
+| `--depth <n>` | Search content depth when using `--include-content markdown` or `structured` (default: 1) |
+| `--child-limit <n>` | Maximum children per level in rendered content (default: 20) |
+| `--max-content-length <n>` | Maximum rendered content length in markdown mode (default: 3000) |
+
+**Examples:**
+
+```bash
+remnote-cli search-tag "#daily" --text
+remnote-cli search-tag "project-review" --include-content markdown
+remnote-cli search-tag "weekly" --include-content structured
+```
 
 ## read
 
