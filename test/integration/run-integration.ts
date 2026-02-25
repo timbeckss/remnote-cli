@@ -29,12 +29,24 @@ const YELLOW = '\x1b[33m';
 const BOLD = '\x1b[1m';
 const DIM = '\x1b[2m';
 const INTEGRATION_PARENT_TITLE = 'RemNote Automation Bridge [temporary integration test data]';
+const INTEGRATION_PARENT_TAG = 'remnote-integration-root-anchor';
+const INTEGRATION_PARENT_SEARCH_QUERIES = [
+  INTEGRATION_PARENT_TITLE,
+  'RemNote Automation Bridge temporary integration test data',
+  'temporary integration test data',
+];
 
 interface IntegrationParentResolution {
   status: 'reused' | 'created';
+  strategy: 'search' | 'tag' | 'create';
   remId: string;
   title: string;
-  exactMatches?: number;
+  exactMatches: number;
+  candidateCount: number;
+}
+
+function normalizeTitle(value: string): string {
+  return value.normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 function printBanner(): void {
@@ -107,44 +119,115 @@ async function ensureIntegrationParentNote(
   cli: CliTestClient,
   state: SharedState
 ): Promise<IntegrationParentResolution> {
-  const searchResult = (await cli.runExpectSuccess([
-    'search',
-    INTEGRATION_PARENT_TITLE,
+  const expectedTitle = normalizeTitle(INTEGRATION_PARENT_TITLE);
+  const candidateMap = new Map<string, Record<string, unknown>>();
+
+  for (const query of INTEGRATION_PARENT_SEARCH_QUERIES) {
+    const searchResult = (await cli.runExpectSuccess([
+      'search',
+      query,
+      '--limit',
+      '150',
+      '--include-content',
+      'none',
+    ])) as Record<string, unknown>;
+    const candidates = Array.isArray(searchResult.results)
+      ? (searchResult.results as Array<Record<string, unknown>>)
+      : [];
+    for (const candidate of candidates) {
+      if (typeof candidate.remId !== 'string') continue;
+      if (!candidateMap.has(candidate.remId)) {
+        candidateMap.set(candidate.remId, candidate);
+      }
+    }
+  }
+
+  const searchCandidates = Array.from(candidateMap.values());
+  const exactSearchMatches = searchCandidates.filter(
+    (item) =>
+      typeof item.title === 'string' && normalizeTitle(item.title as string) === expectedTitle
+  );
+
+  if (exactSearchMatches.length > 1) {
+    const duplicateIds = exactSearchMatches
+      .map((item) => item.remId)
+      .filter((id): id is string => typeof id === 'string');
+    throw new Error(
+      `Duplicate integration root notes detected (${exactSearchMatches.length} exact matches): ${duplicateIds.join(
+        ', '
+      )}. Keep exactly one "${INTEGRATION_PARENT_TITLE}" note and rerun integration tests.`
+    );
+  }
+
+  if (exactSearchMatches.length > 0) {
+    const selected = exactSearchMatches[0];
+    state.integrationParentRemId = selected.remId as string;
+    state.integrationParentTitle = selected.title as string;
+    await cli.runExpectSuccess([
+      'update',
+      selected.remId as string,
+      '--add-tags',
+      INTEGRATION_PARENT_TAG,
+    ]);
+    return {
+      status: 'reused',
+      strategy: 'search',
+      remId: selected.remId as string,
+      title: selected.title as string,
+      exactMatches: exactSearchMatches.length,
+      candidateCount: searchCandidates.length,
+    };
+  }
+
+  const byTagResult = (await cli.runExpectSuccess([
+    'search-tag',
+    INTEGRATION_PARENT_TAG,
     '--limit',
-    '50',
+    '150',
     '--include-content',
     'none',
   ])) as Record<string, unknown>;
-
-  const candidates = Array.isArray(searchResult.results)
-    ? (searchResult.results as Array<Record<string, unknown>>)
+  const tagCandidates = Array.isArray(byTagResult.results)
+    ? (byTagResult.results as Array<Record<string, unknown>>)
     : [];
-
-  const normalizeTitle = (value: string): string => value.trim();
-  const expectedTitle = normalizeTitle(INTEGRATION_PARENT_TITLE);
-  const exactMatches = candidates.filter(
+  const exactTagMatches = tagCandidates.filter(
     (item) =>
       typeof item.remId === 'string' &&
       typeof item.title === 'string' &&
       normalizeTitle(item.title as string) === expectedTitle
   );
 
-  if (exactMatches.length > 0) {
-    const selected = exactMatches[0];
+  if (exactTagMatches.length > 1) {
+    const duplicateIds = exactTagMatches
+      .map((item) => item.remId)
+      .filter((id): id is string => typeof id === 'string');
+    throw new Error(
+      `Duplicate integration root notes detected via tag lookup (${exactTagMatches.length} exact matches): ${duplicateIds.join(
+        ', '
+      )}. Keep exactly one "${INTEGRATION_PARENT_TITLE}" note and rerun integration tests.`
+    );
+  }
+
+  if (exactTagMatches.length > 0) {
+    const selected = exactTagMatches[0];
     state.integrationParentRemId = selected.remId as string;
     state.integrationParentTitle = selected.title as string;
     return {
       status: 'reused',
+      strategy: 'tag',
       remId: selected.remId as string,
       title: selected.title as string,
-      exactMatches: exactMatches.length,
+      exactMatches: exactTagMatches.length,
+      candidateCount: tagCandidates.length,
     };
   }
 
-  const createResult = (await cli.runExpectSuccess(['create', INTEGRATION_PARENT_TITLE])) as Record<
-    string,
-    unknown
-  >;
+  const createResult = (await cli.runExpectSuccess([
+    'create',
+    INTEGRATION_PARENT_TITLE,
+    '--tags',
+    INTEGRATION_PARENT_TAG,
+  ])) as Record<string, unknown>;
 
   if (typeof createResult.remId !== 'string') {
     throw new Error(
@@ -156,8 +239,11 @@ async function ensureIntegrationParentNote(
   state.integrationParentTitle = INTEGRATION_PARENT_TITLE;
   return {
     status: 'created',
+    strategy: 'create',
     remId: createResult.remId,
     title: INTEGRATION_PARENT_TITLE,
+    exactMatches: 0,
+    candidateCount: searchCandidates.length + tagCandidates.length,
   };
 }
 
@@ -197,11 +283,11 @@ async function main(): Promise<void> {
     const parentResolution = await ensureIntegrationParentNote(cli, state);
     if (parentResolution.status === 'reused') {
       console.log(
-        `Integration parent: found existing "${parentResolution.title}" (${parentResolution.remId}) [exact matches: ${parentResolution.exactMatches}]`
+        `Integration parent: found existing via ${parentResolution.strategy} "${parentResolution.title}" (${parentResolution.remId}) [exact matches: ${parentResolution.exactMatches}, candidates: ${parentResolution.candidateCount}]`
       );
     } else {
       console.log(
-        `Integration parent: not found, created "${parentResolution.title}" (${parentResolution.remId})`
+        `Integration parent: not found via search/tag lookups, created "${parentResolution.title}" (${parentResolution.remId}) [candidates checked: ${parentResolution.candidateCount}]`
       );
     }
   } catch (e) {
