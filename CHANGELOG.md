@@ -8,9 +8,12 @@ All notable changes to this project will be documented in this file.
 
 - **Legacy bridge warning**: `status` now injects `version_warning` for legacy bridge plugins (0.5.x) that don't send
   a `hello` message, by falling back to `pluginVersion` from the `get_status` response.
-- Integration anchor-note reuse now selects the first existing search hit by `remId` (instead of strict title-equality
-  filtering), preventing repeated duplicate creation of
-  `RemNote Automation Bridge [temporary integration test data]`.
+- Integration anchor-note reuse now selects the first exact title match (trim-normalized) for
+  `RemNote Automation Bridge [temporary integration test data]`, preventing repeated duplicate creation of
+  similarly named notes.
+- Integration runner startup now logs whether the anchor note was found or created, including selected `remId`.
+- Integration `search-tag` scenario now derives expected target from live ancestry traversal of the tagged note
+  (nearest document/daily document fallback), avoiding false negatives when RemNote hierarchy returns document ancestors.
 - Integration tests now pass an explicit `search --include-content <mode>` value and cover all three modes
   (`markdown`, `structured`, `none`) with response-shape assertions.
 - Integration tests now cover `read --include-content` modes (`markdown`, `none`) with response-shape assertions for

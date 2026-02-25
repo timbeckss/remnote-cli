@@ -30,6 +30,13 @@ const BOLD = '\x1b[1m';
 const DIM = '\x1b[2m';
 const INTEGRATION_PARENT_TITLE = 'RemNote Automation Bridge [temporary integration test data]';
 
+interface IntegrationParentResolution {
+  status: 'reused' | 'created';
+  remId: string;
+  title: string;
+  exactMatches?: number;
+}
+
 function printBanner(): void {
   console.log(`
 ${BOLD}╔═══════════════════════════════════════════════╗
@@ -96,7 +103,10 @@ function printSummary(results: WorkflowResult[], totalDurationMs: number): void 
   console.log('Search your RemNote KB for "[CLI-TEST]" to find and delete them.');
 }
 
-async function ensureIntegrationParentNote(cli: CliTestClient, state: SharedState): Promise<void> {
+async function ensureIntegrationParentNote(
+  cli: CliTestClient,
+  state: SharedState
+): Promise<IntegrationParentResolution> {
   const searchResult = (await cli.runExpectSuccess([
     'search',
     INTEGRATION_PARENT_TITLE,
@@ -110,15 +120,25 @@ async function ensureIntegrationParentNote(cli: CliTestClient, state: SharedStat
     ? (searchResult.results as Array<Record<string, unknown>>)
     : [];
 
-  const firstCandidate = candidates.find((item) => typeof item.remId === 'string');
+  const normalizeTitle = (value: string): string => value.trim();
+  const expectedTitle = normalizeTitle(INTEGRATION_PARENT_TITLE);
+  const exactMatches = candidates.filter(
+    (item) =>
+      typeof item.remId === 'string' &&
+      typeof item.title === 'string' &&
+      normalizeTitle(item.title as string) === expectedTitle
+  );
 
-  if (firstCandidate) {
-    state.integrationParentRemId = firstCandidate.remId as string;
-    state.integrationParentTitle =
-      typeof firstCandidate.title === 'string' && firstCandidate.title.length > 0
-        ? (firstCandidate.title as string)
-        : INTEGRATION_PARENT_TITLE;
-    return;
+  if (exactMatches.length > 0) {
+    const selected = exactMatches[0];
+    state.integrationParentRemId = selected.remId as string;
+    state.integrationParentTitle = selected.title as string;
+    return {
+      status: 'reused',
+      remId: selected.remId as string,
+      title: selected.title as string,
+      exactMatches: exactMatches.length,
+    };
   }
 
   const createResult = (await cli.runExpectSuccess(['create', INTEGRATION_PARENT_TITLE])) as Record<
@@ -134,6 +154,11 @@ async function ensureIntegrationParentNote(cli: CliTestClient, state: SharedStat
 
   state.integrationParentRemId = createResult.remId;
   state.integrationParentTitle = INTEGRATION_PARENT_TITLE;
+  return {
+    status: 'created',
+    remId: createResult.remId,
+    title: INTEGRATION_PARENT_TITLE,
+  };
 }
 
 async function main(): Promise<void> {
@@ -169,8 +194,16 @@ async function main(): Promise<void> {
   }
 
   try {
-    await ensureIntegrationParentNote(cli, state);
-    console.log(`Integration parent: ${state.integrationParentRemId}`);
+    const parentResolution = await ensureIntegrationParentNote(cli, state);
+    if (parentResolution.status === 'reused') {
+      console.log(
+        `Integration parent: found existing "${parentResolution.title}" (${parentResolution.remId}) [exact matches: ${parentResolution.exactMatches}]`
+      );
+    } else {
+      console.log(
+        `Integration parent: not found, created "${parentResolution.title}" (${parentResolution.remId})`
+      );
+    }
   } catch (e) {
     console.error(
       `${RED}Failed to initialize integration parent note "${INTEGRATION_PARENT_TITLE}".${RESET}`

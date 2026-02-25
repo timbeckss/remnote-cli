@@ -50,5 +50,5 @@ If the status check (workflow 1) fails, workflows 2-5 are skipped.
 After running tests, search RemNote for `[CLI-TEST]` to find and delete test artifacts.
 
 Integration-created notes are grouped under the shared root-level anchor note
-`RemNote Automation Bridge [temporary integration test data]`. If the anchor exists already, tests reuse the first
-search hit instead of creating another anchor note.
+`RemNote Automation Bridge [temporary integration test data]`. If the anchor exists already (exact title match,
+trim-normalized), tests reuse the first exact match instead of creating another anchor note.
