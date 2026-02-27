@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Added OpenClaw skill docs under `openclaw-skill/`:
   - `openclaw-skill/remnote/SKILL.md` with read-first defaults, strict `confirm write` gating for mutating commands,
-    bridge/CLI `0.x` compatibility checks, and example trigger phrases for OpenClaw auto-activation.
+    bridge/CLI `0.x` compatibility checks, example trigger phrases for OpenClaw auto-activation, and blue `🌀` emoji.
   - `openclaw-skill/README.md` with repository-facing overview of the skill package.
 
 ### Changed
