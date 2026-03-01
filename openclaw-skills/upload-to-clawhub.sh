@@ -51,7 +51,7 @@ if ! command -v clawhub >/dev/null 2>&1; then
   exit 1
 fi
 
-SKILL_PATH="${REPO_ROOT}/openclaw-skill/remnote"
+SKILL_PATH="${REPO_ROOT}/openclaw-skills/remnote"
 if [[ ! -f "${SKILL_PATH}/SKILL.md" ]]; then
   echo "Skill file not found: ${SKILL_PATH}/SKILL.md" >&2
   exit 1
