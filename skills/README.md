@@ -8,6 +8,7 @@ This directory contains an OpenClaw skill package for using RemNote through `rem
 - Setup focus: plugin + CLI compatibility checks (`0.x` minor line alignment)
 - KB navigation template path: `skills/remnote-kb-navigation/SKILL.md`
 - KB navigation template setup guide: `skills/remnote-kb-navigation/CUSTOMIZATION.md`
+- "Skill creator" skill which adds skill validation - see skills/README-skill-creator.md
 
 Important:
 

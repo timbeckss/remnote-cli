@@ -12,3 +12,4 @@ Source
 Notes
 
 - The local copy is intended to stay 1:1 with upstream unless explicitly requested otherwise.
+- Small fix has been added after a copy from upstream: allow homepage field
