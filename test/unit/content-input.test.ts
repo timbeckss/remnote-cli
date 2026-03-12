@@ -75,6 +75,28 @@ with "quotes" and \`ticks\``;
     ).rejects.toThrow('Cannot use --content and --content-file together');
   });
 
+  it('un-escapes literal \\n in inline content', async () => {
+    const inlineText = '- line 1\\n- line 2';
+    const resolved = await resolveOptionalInlineOrFileContent({
+      inlineText,
+      filePath: undefined,
+      inlineFlag: '--content',
+      fileFlag: '--content-file',
+    });
+    expect(resolved).toBe('- line 1\n- line 2');
+  });
+
+  it('un-escapes literal \\n in inline content', async () => {
+    const inlineText = "- line 1\n- line 2";
+    const resolved = await resolveOptionalInlineOrFileContent({
+      inlineText,
+      filePath: undefined,
+      inlineFlag: '--content',
+      fileFlag: '--content-file',
+    });
+    expect(resolved).toBe('- line 1\n- line 2');
+  });
+
   it('resolves update replacement content from --replace-file', async () => {
     const path = await createTempFile('replace body');
     await expect(
