@@ -14,7 +14,29 @@ export async function errorCasesWorkflow(
 ): Promise<WorkflowResult> {
   const steps: StepResult[] = [];
 
-  // Step 1: Read nonexistent note returns error
+  // Step 1: Create rejects with neither title nor content (bridge-side validation)
+  {
+    const start = Date.now();
+    try {
+      // Current contract requires either title or content
+      const result = await ctx.cli.runExpectError(['create']);
+      assertTruthy(result.exitCode !== 0, 'should have non-zero exit code');
+      steps.push({
+        label: 'Create rejects with neither title nor content',
+        passed: true,
+        durationMs: Date.now() - start,
+      });
+    } catch (e) {
+      steps.push({
+        label: 'Create rejects with neither title nor content',
+        passed: false,
+        durationMs: Date.now() - start,
+        error: (e as Error).message,
+      });
+    }
+  }
+
+  // Step 2: Read nonexistent note returns error
   {
     const start = Date.now();
     try {
@@ -35,7 +57,7 @@ export async function errorCasesWorkflow(
     }
   }
 
-  // Step 2: Update nonexistent note returns error
+  // Step 3: Update nonexistent note returns error
   {
     const start = Date.now();
     try {
@@ -61,7 +83,7 @@ export async function errorCasesWorkflow(
     }
   }
 
-  // Step 3: Search with empty query handled gracefully
+  // Step 4: Search with empty query handled gracefully
   {
     const start = Date.now();
     try {
@@ -84,7 +106,7 @@ export async function errorCasesWorkflow(
     }
   }
 
-  // Step 4: Update rejects append + replace conflict
+  // Step 5: Update rejects append + replace conflict
   {
     const start = Date.now();
     try {

@@ -184,7 +184,7 @@ export async function createSearchWorkflow(
     state.searchByTagTag = `cli-test-tag-${ctx.runId.replace(/[^a-zA-Z0-9]/g, '-')}`;
   }
 
-  // Step 1: Create simple note
+  // Step 1: Create simple note (title-only)
   {
     const start = Date.now();
     try {
@@ -194,8 +194,9 @@ export async function createSearchWorkflow(
         '--parent-id',
         state.integrationParentRemId,
       ])) as Record<string, unknown>;
-      assertHasField(result, 'remId', 'create simple note');
-      state.noteAId = result.remId as string;
+      assertHasField(result, 'remIds', 'create simple note');
+      assertIsArray(result.remIds, 'remIds should be an array');
+      state.noteAId = (result.remIds as string[])[0];
       steps.push({ label: 'Create simple note', passed: true, durationMs: Date.now() - start });
     } catch (e) {
       steps.push({
@@ -207,7 +208,7 @@ export async function createSearchWorkflow(
     }
   }
 
-  // Step 2: Create rich note (with content and tags)
+  // Step 2: Create rich note (with content-only and tags)
   {
     const start = Date.now();
     try {
@@ -223,8 +224,9 @@ export async function createSearchWorkflow(
           state.searchByTagTag,
         ])) as Record<string, unknown>;
       })) as Record<string, unknown>;
-      assertHasField(result, 'remId', 'create rich note');
-      state.noteBId = result.remId as string;
+      assertHasField(result, 'remIds', 'create rich note');
+      assertIsArray(result.remIds, 'remIds should be an array');
+      state.noteBId = (result.remIds as string[])[0];
       steps.push({ label: 'Create rich note', passed: true, durationMs: Date.now() - start });
     } catch (e) {
       steps.push({
@@ -236,27 +238,27 @@ export async function createSearchWorkflow(
     }
   }
 
-  // Step 3: Create flashcard note (with back-text)
+  // Step 3: Create flashcard note with positional arguments
   {
     const start = Date.now();
     try {
       const result = (await ctx.cli.runExpectSuccess([
         'create',
         `[CLI-TEST] Flashcard Note ${ctx.runId}`,
+        'Front :: Back',
         '--parent-id',
         state.integrationParentRemId as string,
-        '--back-text',
-        'This is the back of the flashcard',
-        '--concept',
         '--tags',
         state.searchByTagTag as string,
       ])) as Record<string, unknown>;
-      assertHasField(result, 'remId', 'create flashcard note');
-      state.noteCId = result.remId as string;
-      steps.push({ label: 'Create flashcard note', passed: true, durationMs: Date.now() - start });
+      assertHasField(result, 'remIds', 'create flashcard note');
+      assertIsArray(result.remIds, 'remIds should be an array');
+      state.noteCId = (result.remIds as string[])[0];
+
+      steps.push({ label: 'Create flashcard with positional arguments checks', passed: true, durationMs: Date.now() - start });
     } catch (e) {
       steps.push({
-        label: 'Create flashcard note',
+        label: 'Create flashcard with positional arguments checks',
         passed: false,
         durationMs: Date.now() - start,
         error: (e as Error).message,
@@ -292,7 +294,7 @@ export async function createSearchWorkflow(
 
       const result = (await withTempContentFile(markdownContent, async (contentPath) => {
         return (await ctx.cli.runExpectSuccess([
-          'create-md',
+          'create',
           '--parent-id',
           state.integrationParentRemId as string,
           '--content-file',

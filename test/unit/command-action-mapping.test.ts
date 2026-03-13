@@ -59,46 +59,59 @@ describe('command bridge action mapping', () => {
     executeSpy.mockRestore();
   });
 
-  it('maps create command with flashcard options to create_note', async () => {
-    const executeSpy = await runCommand([
-      'create',
-      'Front',
-      '--back-text',
-      'Back',
-      '--concept',
-    ]);
+  it('maps create command with title and content positional args', async () => {
+    const executeSpy = await runCommand(['create', 'Title', 'Body']);
     expect(executeSpy).toHaveBeenCalledWith('create_note', {
-      title: 'Front',
-      backText: 'Back',
-      isConcept: true,
+      title: 'Title',
+      content: 'Body',
     });
     executeSpy.mockRestore();
   });
 
-  it('maps create-md command to create_note_md', async () => {
-    const executeSpy = await runCommand([
-      'create-md',
-      '--title',
-      'Root',
-      '--content',
-      '- Item 1\n  - Item 2\n',
-      '--tags',
-      'md-tag',
-    ]);
-    expect(executeSpy).toHaveBeenCalledWith('create_note_md', {
-      title: 'Root',
-      content: '- Item 1\n  - Item 2\n',
-      tags: ['md-tag'],
+  it('maps create command with title positional and --content opt', async () => {
+    const executeSpy = await runCommand(['create', 'Title', '--content', 'Body']);
+    expect(executeSpy).toHaveBeenCalledWith('create_note', {
+      title: 'Title',
+      content: 'Body',
     });
     executeSpy.mockRestore();
   });
 
-  it('maps create-md --content-file to create_note_md', async () => {
-    const filePath = await createTempContentFile('- Item from file');
-    const executeSpy = await runCommand(['create-md', '--content-file', filePath]);
-    expect(executeSpy).toHaveBeenCalledWith('create_note_md', {
-      content: '- Item from file',
+  it('maps create command with title-only positional args', async () => {
+    const executeSpy = await runCommand(['create', 'Title']);
+    expect(executeSpy).toHaveBeenCalledWith('create_note', {
+      title: 'Title',
     });
+    executeSpy.mockRestore();
+  });
+
+  it('maps create command with --title flag', async () => {
+    const executeSpy = await runCommand(['create', '--title', 'Flag Title']);
+    expect(executeSpy).toHaveBeenCalledWith('create_note', {
+      title: 'Flag Title',
+    });
+    executeSpy.mockRestore();
+  });
+
+  it('maps create command with content-only (--content)', async () => {
+    const executeSpy = await runCommand(['create', '--content', 'Body']);
+    expect(executeSpy).toHaveBeenCalledWith('create_note', {
+      content: 'Body',
+    });
+    executeSpy.mockRestore();
+  });
+
+  it('maps create command with content-only positional arg', async () => {
+    const executeSpy = await runCommand(['create', '', 'Body']);
+    expect(executeSpy).toHaveBeenCalledWith('create_note', {
+      content: 'Body',
+    });
+    executeSpy.mockRestore();
+  });
+
+  it('maps create command with no args (bridge-side error)', async () => {
+    const executeSpy = await runCommand(['create']);
+    expect(executeSpy).toHaveBeenCalledWith('create_note', {});
     executeSpy.mockRestore();
   });
 
