@@ -30,6 +30,9 @@ export interface SharedState {
   noteBId?: string;
   noteCId?: string;
   mdTreeIds?: string[];
+  journalEntryAId?: string;
+  journalEntryBId?: string;
+  journalEntryCId?: string;
   acceptWriteOperations?: boolean;
   acceptReplaceOperation?: boolean;
 }
