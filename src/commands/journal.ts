@@ -3,13 +3,16 @@ import { DaemonClient } from '../client/daemon-client.js';
 import { formatResult, formatError, type OutputFormat } from '../output/formatter.js';
 import { EXIT } from '../config.js';
 import { resolveJournalContent } from './content-input.js';
+import { checkPayloadForFlags, validateNotFlag } from './arg-utils.js';
 
 export function registerJournalCommand(program: Command): void {
-  program
-    .command('journal [content]')
+  const subprogram = program.command('journal [content]');
+  const validate = (val: string) => validateNotFlag(val, subprogram);
+
+  subprogram
     .description("Append an entry to today's journal")
-    .option('--content <text>', 'Journal entry content')
-    .option('--content-file <path>', 'Read journal entry from UTF-8 file ("-" for stdin)')
+    .option('--content <text>', 'Journal entry content', validate)
+    .option('--content-file <path>', 'Read journal entry from UTF-8 file ("-" for stdin)', validate)
     .option('--no-timestamp', 'Omit timestamp prefix')
     .action(async (positionalContent: string | undefined, opts) => {
       const globalOpts = program.opts();
@@ -17,8 +20,11 @@ export function registerJournalCommand(program: Command): void {
       const client = new DaemonClient(parseInt(globalOpts.controlPort, 10));
 
       try {
+        // Validate shifting for positional content
+        checkPayloadForFlags({ content: positionalContent }, program);
+
         const content = await resolveJournalContent({
-          positionalContent,
+          positionalContent: positionalContent as string | undefined,
           optionContent: opts.content as string | undefined,
           contentFile: opts.contentFile as string | undefined,
         });
