@@ -6,7 +6,8 @@
 
 CLI (command-line interface) companion for the [RemNote Automation Bridge](https://github.com/robert7/remnote-mcp-bridge) plugin.
 Provides terminal access to your RemNote knowledge base through a lightweight daemon architecture.
-Useful e.g. for integration with OpenClaw agents, scripting and other automation.
+Useful e.g. for integration with OpenClaw agents, scripting and other automation, including hierarchical markdown note
+creation and RemNote-native flashcards.
 
 > This is a working solution, but still experimental. If you run into any issues, please [report them here](https://github.com/robert7/remnote-cli/issues).
 
@@ -27,7 +28,7 @@ CLI Daemon (background process)
          ▲
          │ HTTP
 CLI Commands (short-lived)
-  e.g. remnote-cli create "My Note"
+  e.g. remnote-cli create "My Note" --content-file /tmp/my-note.md
 ```
 
 Two components: the RemNote Automation Bridge plugin connects to the CLI daemon's WebSocket server. CLI commands talk
@@ -52,7 +53,7 @@ remnote-cli daemon start
 # Check connection
 remnote-cli status --text
 
-# Create a note
+# Create a note or flashcards from markdown content
 remnote-cli create "My Note" --content-file /tmp/my-note.md --text
 
 # Search
@@ -91,12 +92,12 @@ remnote-cli daemon stop
 | `daemon start` | Start the background daemon |
 | `daemon stop` | Stop the daemon |
 | `daemon status` | Show daemon process status |
-| `create <title>` | Create a new note |
+| `create [title] [options]` | Create notes or flashcards from inline or file-based markdown content |
 | `search <query>` | Search for notes |
 | `search-tag <tag>` | Search for tagged notes with ancestor context |
-| `read <rem-id>` | Read a note by ID |
-| `update <rem-id>` | Update an existing note |
-| `journal [content]` | Append to today's journal |
+| `read <rem-id>` | Read a note by ID in markdown or structured form |
+| `update <rem-id>` | Update an existing note with append/replace content operations |
+| `journal [content]` | Append markdown content to today's journal |
 | `status` | Check bridge connection status |
 
 ## Global Options
