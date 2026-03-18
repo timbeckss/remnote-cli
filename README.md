@@ -37,6 +37,9 @@ to the daemon over a local HTTP control API.
 On current bridge builds, the plugin starts its connection attempts automatically on plugin activation. The Automation
 Bridge sidebar panel is optional for status, logs, and manual reconnect.
 
+For the detailed bridge connection lifecycle, retry phases, and wake-up triggers, use the bridge repo as the source of
+truth: [Connection Lifecycle Guide](https://github.com/robert7/remnote-mcp-bridge/blob/main/docs/guides/connection-lifecycle.md).
+
 ## Quick Start
 
 > **Version compatibility (`0.x` semver):** install a `remnote-cli` version compatible with your installed RemNote Automation Bridge plugin version. See the [Bridge / Consumer Version Compatibility Guide](https://github.com/robert7/remnote-mcp-bridge/blob/main/docs/guides/bridge-consumer-version-compatibility.md).
@@ -79,6 +82,7 @@ remnote-cli daemon stop
 ### Help & Advanced
 
 - **[Troubleshooting](docs/guides/troubleshooting.md)** - Common issues and fixes
+- **[Bridge Connection Lifecycle](https://github.com/robert7/remnote-mcp-bridge/blob/main/docs/guides/connection-lifecycle.md)** - Canonical bridge connect/retry behavior
 
 ### Development
 

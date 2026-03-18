@@ -27,6 +27,9 @@ remnote-cli status --control-port 4100
    panel if you want an immediate retry.
 7. Check daemon logs: `remnote-cli daemon start --foreground --log-level debug`
 
+For detailed bridge retry phases and wake-up behavior, see the canonical bridge doc:
+[Connection Lifecycle Guide](https://github.com/robert7/remnote-mcp-bridge/blob/main/docs/guides/connection-lifecycle.md).
+
 ## Version Mismatch After Upgrade
 
 **Symptom:** `status` may show connected, but commands fail after upgrading the bridge plugin or `remnote-cli`.

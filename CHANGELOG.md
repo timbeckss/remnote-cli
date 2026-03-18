@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Documentation
 
 - Updated `README.md` command summaries and examples to reflect hierarchical markdown and flashcard creation.
+- Linked CLI connection troubleshooting back to the bridge repo's connection lifecycle guide as the single source of truth.
 
 ## [0.9.0] - 2026-03-17
 
